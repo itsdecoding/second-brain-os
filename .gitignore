@@ -1,0 +1,10 @@
+# release and build artifacts
+dist/
+*.zip
+
+# vercel
+.vercel
+
+# system
+.DS_Store
+Thumbs.db

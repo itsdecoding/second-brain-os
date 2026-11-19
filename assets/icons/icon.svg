@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Second Brain OS">
+  <rect width="512" height="512" rx="112" fill="#2f5d50"/>
+  <g fill="#ffffff">
+    <rect x="61" y="168" width="390" height="52" rx="26"/>
+    <rect x="106" y="248" width="300" height="52" rx="26"/>
+    <rect x="151" y="328" width="210" height="52" rx="26"/>
+  </g>
+</svg>
