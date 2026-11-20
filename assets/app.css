@@ -1278,7 +1278,10 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .onb-body {
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column;
-  overflow-y: auto; overscroll-behavior: contain;
+  /* The step transition slides ±18px. Without an explicit hidden x-axis the
+     browser promotes overflow-x to auto and a scrollbar flashes for 150ms. */
+  overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 /* auto margins centre the step when there is room, and collapse to 0 when the
    content is taller than the body — so nothing is ever clipped at the top */
