@@ -4,6 +4,7 @@
   'use strict';
 
   var RM = window.RM, S = RM.store, sel = RM.sel, esc = RM.esc;
+  var APP_VERSION = '3.3.0';
   var app = document.getElementById('app');
   var overlayRoot = document.getElementById('overlay-root');
   var toastRoot = document.getElementById('toast-root');
@@ -89,6 +90,26 @@
     return '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" fill="none" ' +
       'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ' +
       'aria-hidden="true" focusable="false">' + (P[name] || '') + '</svg>';
+  }
+
+  /* Brand mark: the chrome brain on a graphite tile. Inline so it stays crisp at
+     any size, needs no extra request, and survives a file:// launch. The
+     gradient id is unique per instance — two marks can be on screen at once and
+     removing one must not blank the other. */
+  var markSeq = 0;
+  function brandMark(cls) {
+    var id = 'rmchrome' + (++markSeq);
+    return '<span class="brand-mark' + (cls ? ' ' + cls : '') + '" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" focusable="false">' +
+      '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2=".18" y2="1">' +
+      '<stop offset="0" stop-color="#ffffff"/><stop offset=".34" stop-color="#d3dde2"/>' +
+      '<stop offset=".5" stop-color="#8b9aa2"/><stop offset=".58" stop-color="#c9d4da"/>' +
+      '<stop offset="1" stop-color="#f7fafb"/>' +
+      '</linearGradient></defs>' +
+      '<path d="M9.5 2A4.5 4.5 0 0 0 5 6.5a4.4 4.4 0 0 0 .5 2 4.5 4.5 0 0 0-1.5 3.5 4.4 4.4 0 0 0 1 2.8A4.5 4.5 0 0 0 7 19.5h4.2V2z" fill="url(#' + id + ')"/>' +
+      '<path d="M14.5 2A4.5 4.5 0 0 1 19 6.5a4.4 4.4 0 0 1-.5 2 4.5 4.5 0 0 1 1.5 3.5 4.4 4.4 0 0 1-1 2.8A4.5 4.5 0 0 1 17 19.5h-4.2V2z" fill="url(#' + id + ')"/>' +
+      '<path d="M12 4.6v14.4" stroke="#0b1013" stroke-width=".5" stroke-linecap="round" opacity=".42"/>' +
+      '</svg></span>';
   }
 
   /* ------------------------------------------------------------ nav model */
@@ -251,7 +272,7 @@
 
     return '<aside class="sidebar" id="sidebar" aria-label="Main navigation">' +
       '<div class="brand">' +
-      '<div class="brand-mark">SB</div>' +
+      brandMark() +
       '<div class="brand-text"><span class="brand-name">Second Brain OS</span><span class="brand-sub">Rewrite Minds</span></div>' +
       '</div>' +
       '<nav class="nav-group">' + items + '</nav>' +
@@ -829,6 +850,12 @@
       '<button class="btn btn-sm" data-act="intro-play">Play</button>' +
       '<label class="switch"><input type="checkbox" data-act="set-intro"' +
       (d.settings.intro === false ? '' : ' checked') + ' aria-label="Play the launch animation"><span></span></label>' +
+      '</div></div>' +
+      '<div class="set-toggle">' +
+      '<div><div class="set-toggle-t">First-run tour</div>' +
+      '<div class="set-toggle-d">The four rules, your name and how to start. Replaying it never touches your data.</div></div>' +
+      '<div class="set-toggle-ctl">' +
+      '<button class="btn btn-sm" data-act="replay-tour">Take the tour</button>' +
       '</div></div></div></div>';
 
     out += '<div class="section"><div class="section-head"><span class="section-title">Keyboard</span><span class="section-line"></span></div>' +
@@ -849,7 +876,7 @@
       '<p class="small muted" style="margin-top:9px">Erasing cannot be undone. Export first if there is anything worth keeping.</p>' +
       '</div></div>';
 
-    out += '<p class="small muted" style="text-align:center;margin-top:26px">Second Brain OS · Rewrite Minds · v1.2</p>';
+    out += '<p class="small muted" style="text-align:center;margin-top:26px">Second Brain OS · Rewrite Minds · v' + APP_VERSION + '</p>';
     return out;
   }
 
@@ -1022,13 +1049,14 @@
     }
   }
 
-  function openOnboarding() {
+  function openOnboarding(replay) {
     var d = S.get();
     onb = {
       step: 0,
       name: d.settings.name || '',
       accent: d.settings.accent || '#2f5d50',
-      seed: 'sample'
+      seed: replay ? 'empty' : 'sample',
+      replay: !!replay
     };
     paintOnboarding('fwd');
   }
@@ -1131,15 +1159,19 @@
         '<div class="onb-step">' +
         '<div class="onb-eyebrow">Last step</div>' +
         '<h1 class="onb-huge" id="onb-heading">Start with a running system, or a blank page.</h1>' +
-        '<div class="onb-choices">' +
-        choice('sample', 'Show me a filled-in system',
-          'Projects, tasks, notes, a journal and a finished review. Everything is editable, and you can erase it in one click.') +
-        choice('empty', 'Start with a clean slate',
-          'Nothing in it but the four rules. Best if you are migrating from another app and want a fresh start.') +
+        (onb.replay
+          ? '<p class="onb-lede">This is just the tour again — nothing here changes your data.</p>'
+          : '<div class="onb-choices">' +
+            choice('sample', 'Show me a filled-in system',
+              'Projects, tasks, notes, a journal and a finished review. Everything is editable, and you can erase it in one click.') +
+            choice('empty', 'Start with a clean slate',
+              'Nothing in it but the four rules. Best if you are migrating from another app and want a fresh start.') +
+            '</div>') +
         '</div></div>';
     }
 
     var nextLabel = s === 0 ? 'Begin' : s === 1 ? 'Got it' : s === 2 ? 'Continue'
+      : onb.replay ? 'Back to the app'
       : (onb.seed === 'sample' ? 'Open the example' : 'Enter Second Brain OS');
 
     /* The shell is built once. Only the body swaps, so the buttons never jump
@@ -1149,7 +1181,7 @@
         '<div class="onb" id="onb" role="dialog" aria-modal="true" aria-labelledby="onb-heading">' +
         '<div class="onb-panel">' +
         '<div class="onb-top">' +
-        '<div class="onb-brand"><div class="onb-mark">SB</div>' +
+        '<div class="onb-brand">' + brandMark('onb-mark') +
         '<div class="onb-brand-t"><span class="onb-brand-n">Second Brain OS</span>' +
         '<span class="onb-brand-s">Rewrite Minds</span></div></div>' +
         '<button class="onb-skip" data-act="onb-skip">Skip the tour</button>' +
@@ -1247,9 +1279,10 @@
 
   function onbSkip() {
     if (!onb || onbBusy) return;
-    onb.step = 3;
+    // Skip means done. Dropping the user on the last step left the tour
+    // un-finished, so every refresh brought it straight back.
     onb.seed = 'empty';
-    paintOnboarding('fwd');
+    finishOnboarding();
   }
 
   function finishOnboarding() {
@@ -1257,8 +1290,9 @@
     var name = (onb.name || '').trim();
     var accent = onb.accent;
     var seed = onb.seed;
+    var replay = !!onb.replay;
 
-    if (seed === 'sample') S.loadSample();
+    if (seed === 'sample' && !replay) S.loadSample();
     S.commit(function (d) {
       d.onboarded = true;
       d.settings.name = name;
@@ -1277,6 +1311,7 @@
     navDir = 1;
     lastViewKey = null;
     go('dashboard');
+    if (replay) return;
     toast(seed === 'sample'
       ? 'Example loaded — erase it any time in Settings'
       : 'Clean slate. Start by capturing one thing.', 'ok', seed === 'sample' ? 3600 : 2800);
@@ -1501,6 +1536,7 @@
       case 'close-sidebar': app.dataset.sidebar = 'closed'; render(); break;
       case 'palette': openPalette(); break;
       case 'intro-play': playIntro(null, true); break;
+    case 'replay-tour': openOnboarding(true); break;
       case 'close-modal': closeModal(); break;
       case 'confirm-yes':
         var fn = pendingConfirm;
@@ -1799,7 +1835,7 @@
     var inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
 
     if (onb) {
-      if (e.key === 'Escape') { e.preventDefault(); onbBack(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); onbSkip(); return; }
       if (e.key === 'Enter' && document.activeElement.tagName !== 'INPUT' &&
         document.activeElement.tagName !== 'TEXTAREA') {
         e.preventDefault(); onbNext(); return;
