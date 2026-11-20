@@ -8,7 +8,7 @@
    - Matching ignores the ?v= query string so index.html can cache-bust
      without breaking the offline shell. */
 
-const CACHE = 'sb-os-v3.3.0';
+const CACHE = 'sb-os-v3.3.0-2';
 const PREFIX = 'sb-os-';
 
 const ASSETS = [
@@ -32,9 +32,13 @@ const ASSETS = [
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE)
-      .then((c) => c.addAll(ASSETS))
-      .catch(() => {})
+    caches.open(CACHE).then((c) => Promise.all(ASSETS.map((asset) =>
+      // cache:'reload' bypasses any stale HTTP-cache copy, so a cache-name
+      // bump cannot bake the previous build into the new shell.
+      fetch(asset, { cache: 'reload' })
+        .then((res) => { if (res && res.status === 200) return c.put(asset, res); })
+        .catch(() => {})
+    ))).catch(() => {})
   );
 });
 
