@@ -189,10 +189,11 @@
   }
 
   function applyAccent(hex) {
-    if (!hex) return;
+    // A malformed stored accent must never blank the UI: fall back to the brand green.
+    var safe = accentRGB(hex) ? hex : '#2f5d50';
     var root = document.documentElement;
-    root.style.setProperty('--accent', accentFor(hex));
-    root.style.setProperty('--accent-soft', softOf(hex));
+    root.style.setProperty('--accent', accentFor(safe));
+    root.style.setProperty('--accent-soft', softOf(safe));
     root.style.setProperty('--accent-ink', isDarkTheme() ? '#0b1210' : '#ffffff');
   }
 
@@ -335,8 +336,14 @@
     }
     if (v === 'review' && rv.step >= RV_STEPS.length) { rv.step = 0; rv.answers = {}; }
     app.dataset.sidebar = 'closed';
-    if (/^https?:$/.test(location.protocol)) {
-      try { history.replaceState(null, '', '#' + v + (id ? '/' + id : '')); } catch (e) { }
+    // Keep the hash in sync on every protocol, not just http(s). On file://
+    // the palette already wrote hashes, so a reload could deep-link into a
+    // stale view when normal navigation refused to update it.
+    try { history.replaceState(null, '', '#' + v + (id ? '/' + id : '')); }
+    catch (e) {
+      // Some file:// contexts refuse replaceState; a plain hash assignment
+      // still keeps deep links honest at the cost of a history entry.
+      try { location.hash = '#' + v + (id ? '/' + id : ''); } catch (e2) { }
     }
     render();
     window.scrollTo(0, 0);
@@ -2042,6 +2049,11 @@
       }
     });
   }
+
+  /* Let the command palette reuse the app's real theme pipeline instead of
+     toggling an attribute that the stylesheet does not key off. */
+  window.RM = window.RM || {};
+  window.RM.ui = { applyTheme: applyTheme, applyAccent: applyAccent, render: render, go: go };
 
   boot();
 

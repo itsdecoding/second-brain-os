@@ -60,6 +60,12 @@
   /* ------------------------------------------------------------ actions */
   function navigateTo(view, id) {
     closePalette();
+    // Use the app router directly. Writing location.hash here meant file://
+    // users could reload into a view they had already navigated away from.
+    if (window.RM && window.RM.ui && typeof window.RM.ui.go === 'function') {
+      window.RM.ui.go(view, id);
+      return;
+    }
     var hash = '#' + view + (id ? '/' + id : '');
     if (location.hash === hash) {
       var trigger = document.createElement('button');
@@ -148,7 +154,17 @@
         d.settings.theme = nextTheme;
       });
     }
-    document.documentElement.setAttribute('data-theme', nextTheme);
+
+    // Go through the app's pipeline so .theme-dark, --accent and the meta
+    // theme-color all move with the theme. Setting data-theme alone left the
+    // dark stylesheet (keyed off .theme-dark) on the old theme.
+    if (window.RM && window.RM.ui && window.RM.ui.applyTheme) {
+      window.RM.ui.applyTheme(nextTheme);
+      window.RM.ui.render();
+    } else {
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      document.documentElement.classList.toggle('theme-dark', nextTheme === 'dark');
+    }
 
     var themeSelect = document.querySelector('select[data-act="set-theme"], select[name="theme"]');
     if (themeSelect) themeSelect.value = nextTheme;
@@ -173,7 +189,6 @@
 
     var navItems = [
       { id: 'nav-dashboard', category: 'Navigation', title: 'Today', subtitle: 'One screen. Everything that matters right now.', badge: 'View', shortcut: '#dashboard', icon: 'home', keywords: 'today dashboard home day daily', run: function () { navigateTo('dashboard'); } },
-      { id: 'nav-brain', category: 'Navigation', title: '3D Neural Brain', subtitle: 'Explore interactive liquid chrome second brain model in 3D', badge: '3D', shortcut: '#brain', icon: 'brain', keywords: 'brain 3d neural liquid chrome model mind synaptic neuro', run: function () { navigateTo('brain'); } },
       { id: 'nav-tasks', category: 'Navigation', title: 'Tasks', subtitle: 'Grouped by when it matters.', badge: 'View', shortcut: '#tasks', icon: 'checkSquare', keywords: 'tasks todo action items list', run: function () { navigateTo('tasks'); } },
       { id: 'nav-inbox', category: 'Navigation', title: 'Inbox', subtitle: 'Capture first. Decide later.', badge: 'View', shortcut: '#inbox', icon: 'inbox', keywords: 'inbox capture raw dump triage collect', run: function () { navigateTo('inbox'); } },
       { id: 'nav-projects', category: 'Navigation', title: 'Projects', subtitle: 'Outcomes with a finish line.', badge: 'View', shortcut: '#projects', icon: 'folder', keywords: 'projects outcomes goals milestones', run: function () { navigateTo('projects'); } },
@@ -185,7 +200,6 @@
 
     var actionItems = [
       { id: 'act-new-task', category: 'Quick Actions', title: '+ New Task', subtitle: 'Create a new task with due date & priority', badge: 'Action', shortcut: 'N', icon: 'plus', keywords: 'new task add task create task todo item', run: function () { openNewTask(); } },
-      { id: 'act-neural-pulse', category: 'Quick Actions', title: 'Trigger Neural Pulse', subtitle: 'Fire a synaptic surge through the 3D model', badge: 'Action', shortcut: 'P', icon: 'spark', keywords: 'neural pulse brain surge flash synapsis light', run: function () { closePalette(); if (window.Brain3D) { window.Brain3D.pulse(); showToast('⚡ Neural pulse triggered', 'ok'); } } },
       { id: 'act-quick-capture', category: 'Quick Actions', title: 'Quick Capture', subtitle: 'Instantly drop an unprocessed idea into Inbox', badge: 'Action', shortcut: 'C', icon: 'spark', keywords: 'quick capture inbox record idea memo draft', run: function () { quickCapture(); } },
       { id: 'act-start-review', category: 'Quick Actions', title: 'Start Review', subtitle: 'Run the weekly clarity reflection', badge: 'Action', shortcut: 'R', icon: 'refresh', keywords: 'start review weekly clarity alignment reflection', run: function () { startReview(); } },
       { id: 'act-toggle-theme', category: 'Quick Actions', title: 'Toggle Theme', subtitle: 'Switch between light and dark appearance', badge: 'Action', shortcut: 'T', icon: 'moon', keywords: 'toggle theme appearance dark light mode night', run: function () { toggleTheme(); } },

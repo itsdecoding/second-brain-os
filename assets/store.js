@@ -189,6 +189,9 @@
     if (!data.settings.theme || ['system', 'light', 'dark'].indexOf(data.settings.theme) === -1) {
       data.settings.theme = 'system';
     }
+    if (!/^#[a-f\d]{6}$/i.test(data.settings.accent || '')) {
+      data.settings.accent = base.settings.accent;
+    }
     data.streak = Object.assign({}, base.streak, data.streak || {});
     data.version = VERSION;
     return data;
