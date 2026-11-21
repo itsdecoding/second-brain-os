@@ -23,7 +23,8 @@ HOW TO OPEN IT
 3. Open the folder and double-click  index.html
 4. It opens in your browser and works immediately.
 
-Works in Chrome, Edge, Firefox, Brave and Safari.
+Runs in any current browser: Chrome, Edge, Firefox, Brave
+and Safari. (Tested in Chrome and Edge.)
 
 IMPORTANT: keep the folder intact. index.html needs the
 assets folder that sits beside it. Do not move index.html
@@ -41,9 +42,14 @@ only part of the app that uses WebGL; if your browser has it
 switched off, you get a still image instead and everything
 else behaves identically.
 
-The animation plays once per browser session, so a normal
-reload goes straight in. To stop it entirely - or to replay
-it - go to Settings -> Appearance -> Launch animation.
+The animation plays every time you open the app. To turn it
+off, or to replay it on demand, go to Settings -> Appearance
+-> Launch animation.
+
+The four setup screens appear only once, on the very first
+launch. To see them again - or to show someone else - use
+Settings -> Appearance -> First-run tour -> Take the tour.
+Replaying the tour never changes your data.
 
 No internet connection is needed at any point when you run
 it from this folder. The three files that draw the 3D brain
