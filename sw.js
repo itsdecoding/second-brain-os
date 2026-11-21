@@ -8,7 +8,7 @@
    - Matching ignores the ?v= query string so index.html can cache-bust
      without breaking the offline shell. */
 
-const CACHE = 'sb-os-v3.3.0-4';
+const CACHE = 'sb-os-v3.3.0-5';
 const PREFIX = 'sb-os-';
 
 const ASSETS = [

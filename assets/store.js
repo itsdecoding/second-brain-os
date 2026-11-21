@@ -5,7 +5,7 @@
   'use strict';
 
   var KEY = 'rm.secondbrain.v1';
-  var VERSION = 1;
+  var VERSION = 2;
 
   /* ------------------------------------------------------------ utils */
 
@@ -91,7 +91,7 @@
       settings: {
         density: 'comfortable',
         accent: '#2f5d50',
-        theme: 'system',
+        theme: 'dark',
         showCompleted: false,
         name: '',
         intro: true
@@ -178,6 +178,7 @@
   }
 
   function migrate(data) {
+    var fromVersion = data.version || 0;
     var base = blank();
     Object.keys(base).forEach(function (k) {
       if (!(k in data)) data[k] = base[k];
@@ -187,7 +188,12 @@
     });
     data.settings = Object.assign({}, base.settings, data.settings || {});
     if (!data.settings.theme || ['system', 'light', 'dark'].indexOf(data.settings.theme) === -1) {
-      data.settings.theme = 'system';
+      data.settings.theme = 'dark';
+    }
+    // v2: dark is the product's default look. Anyone left on the old "system"
+    // default is moved once; picking System again in Settings sticks.
+    if (fromVersion < 2 && data.settings.theme === 'system') {
+      data.settings.theme = 'dark';
     }
     if (!/^#[a-f\d]{6}$/i.test(data.settings.accent || '')) {
       data.settings.accent = base.settings.accent;

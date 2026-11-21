@@ -5,14 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Second Brain OS</title>
 <meta name="description" content="An offline, no-account second brain. Capture, task, project and review in one place. You own the file.">
-<meta name="theme-color" content="#fbfbfa">
+<meta name="theme-color" content="#141413">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Second Brain">
+<script>
+/* Dark is the default shell. Resolve it before first paint so a slow first
+   load never flashes a white page under the dark launch animation. Mirrors
+   the theme rules in store.js (v1 "system" is retired to dark). */
+(function () {
+  var dark = true;
+  try {
+    var d = JSON.parse(localStorage.getItem('rm.secondbrain.v1') || 'null');
+    var t = (d && d.settings && d.settings.theme) || 'dark';
+    if (t === 'light') dark = false;
+    else if (t === 'system' && d && d.version >= 2) {
+      dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+  } catch (e) { /* storage blocked: stay dark */ }
+  if (dark) document.documentElement.classList.add('theme-dark');
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-<link rel="stylesheet" href="assets/app.css?v=3.3.0-4">
+<link rel="stylesheet" href="assets/app.css?v=3.3.0-5">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -26,9 +43,9 @@
 <!-- three.js + the embedded brain model are vendored locally (no CDN: this app
      runs from a folder with no internet) but loaded after first paint by
      brain3d.js, so the splash never waits on 4 MB of JavaScript to parse. -->
-<script src="assets/store.js?v=3.3.0-4"></script>
-<script src="assets/brain3d.js?v=3.3.0-4"></script>
-<script src="assets/app.js?v=3.3.0-4"></script>
-<script src="assets/palette.js?v=3.3.0-4"></script>
+<script src="assets/store.js?v=3.3.0-5"></script>
+<script src="assets/brain3d.js?v=3.3.0-5"></script>
+<script src="assets/app.js?v=3.3.0-5"></script>
+<script src="assets/palette.js?v=3.3.0-5"></script>
 </body>
 </html>
